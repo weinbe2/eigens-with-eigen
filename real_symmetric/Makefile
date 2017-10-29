@@ -12,7 +12,7 @@ C_EXAMPLES_OBJ = example_real_symmetric.o
 
 CCX = g++
 # Place your Eigen directory after the -I!
-CXXFLAGS = -O2 -g -Wall -std=c++11 -I./Eigen/
+CXXFLAGS = -O2 -g -Wall -std=c++11 -I../Eigen/
 
 
 
