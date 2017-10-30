@@ -31,5 +31,8 @@
 *.out
 *.app
 
+# Temporary files
+*~
+
 # Don't sync the "Eigen" directory. That's not ours!
 Eigen
