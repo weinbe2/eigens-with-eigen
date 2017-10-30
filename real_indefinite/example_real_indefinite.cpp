@@ -1,10 +1,10 @@
 // Copyright (c) 2017 Evan S Weinberg
 // A reference piece of code which computes matrix elements
-// of a reference sparse Laplace operator to fill a dense
+// of a reference sparse first derivative operator to fill a dense
 // Eigen matrix, then computes the spectrum and prints
 // the Eigenvalues.
 
-// This code is for real, symmetric matrices.
+// This code is for real, indefinite matrices.
 // This code lives on github at github.com/weinbe2/eigens-with-eigen/
 
 #include <iostream>
@@ -24,29 +24,36 @@ using namespace Eigen;
 // with a specific number to template just one size.
 // You can also ust use "MatrixXd".
 typedef Matrix<double, Dynamic, Dynamic, ColMajor> dMatrix;
+// Likewise, we can use "MatrixXcd".
+typedef Matrix<std::complex<double>, Dynamic, Dynamic, ColMajor> cMatrix;
+// We need both real and complex because, while the matrix itself is real,
+// the eigenvalues and eigenvectors can generically be complex.
 
-// Reference 1-D Laplace function.
-void laplace_1d(double* out, double* in, const int L, const double m2);
+
+// Reference 1-D central difference operator
+void central_diff_1d(double* out, double* in, const int L, const double m2);
 
 int main(int argc, char** argv)
 {  
   double *in_real;
   double *out_real;
+  complex<double> *out_cplx; // needed for eigenvectors
 
   // Set output precision to be long.
   cout << setprecision(10);
 
   // Basic information about the lattice.
   const int length = 8;
-  const double m_sq = 0.001;
+  const double mass = 0.001;
 
   // Print the basic info.
-  std::cout << "1D Laplace operator, length " << length << ", mass squared " << m_sq << ", zero boundary conditions.\n";
+  std::cout << "1D central difference operator, length " << length << ", mass " << mass << ", periodic boundary conditions.\n";
   std::cout << "Change the length and mass by modifying the source.\n";
   
   // Allocate.
   in_real = new double[length];
   out_real = new double[length];
+  out_cplx = new complex<double>[length];
 
   // Zero out.
   for (int i = 0; i < length; i++)
@@ -54,11 +61,11 @@ int main(int argc, char** argv)
     in_real[i] = out_real[i] = 0.0;
   }
 
-  //////////////////////////
-  // REAL, SYMMETRIC CASE //
-  //////////////////////////
+  ///////////////////////////
+  // REAL, INDEFINITE CASE //
+  ///////////////////////////
 
-  std::cout << "Real, Symmetric case.\n\n";
+  std::cout << "Real, Indefinite case.\n\n";
 
   // Allocate a sufficiently gigantic matrix.
   dMatrix mat_real = dMatrix::Zero(length, length);
@@ -81,7 +88,7 @@ int main(int argc, char** argv)
       out_real[j] = 0.0;
 
     // PUT YOUR MAT-VEC HERE.
-    laplace_1d(out_real, in_real, length, m_sq);
+    central_diff_1d(out_real, in_real, length, mass);
 
     // Copy your output into the right memory location.
     // If your data layout supports it, you can also pass
@@ -103,14 +110,16 @@ int main(int argc, char** argv)
   }
 
   // Get the eigenvalues and eigenvectors.
-  SelfAdjointEigenSolver< dMatrix > eigsolve_real(length);
-  eigsolve_real.compute(mat_real);
+  EigenSolver< dMatrix > eigsolve_real_indef(length);
+  eigsolve_real_indef.compute(mat_real);
 
   // Remark: if you only want the eigenvalues, you can call
   // eigsolve_real.compute(mat_real, EigenvaluesOnly);
 
   // Print the eigenvalues.
-  dMatrix evals = eigsolve_real.eigenvalues();
+  // Note that the eigenvalues are of type "cMatrix" as typedef'd above or
+  // MatrixXcd generically.
+  cMatrix evals = eigsolve_real_indef.eigenvalues();
   std::cout << "The eigenvalues are:\n" << evals << "\n\n";
   // You can also index individual eigenvalues as "evals(i)", where
   // "i" zero-indexes the eigenvalues.
@@ -121,8 +130,8 @@ int main(int argc, char** argv)
   {
     for (int i = 0; i < length; i++)
     {
-      // You can use "VectorXd" as the type instead.
-      dMatrix evec = eigsolve_real.eigenvectors().col(i);
+      // You can use "VectorXcd" as the type instead.
+      cMatrix evec = eigsolve_real_indef.eigenvectors().col(i);
       
       // Print the eigenvector.
       std::cout << "Eigenvector " << i << " equals:\n" << evec << "\n\n";
@@ -130,7 +139,7 @@ int main(int argc, char** argv)
       // You can also copy the eigenvector into another array as such:
       for (int j = 0; j < length; j++)
       {
-        out_real[j] = evec(j);
+        out_cplx[j] = evec(j);
       }
     }
   }
@@ -138,23 +147,20 @@ int main(int argc, char** argv)
   // Clean up.
   delete[] in_real;
   delete[] out_real;
+  delete[] out_cplx;
 
   return 0;
 }
 
 
 
-// Reference 1-D Laplace function.
-void laplace_1d(double* out, double* in, const int L, const double m2)
+// Reference 1-D central difference function.
+void central_diff_1d(double* out, double* in, const int L, const double mass)
 {
-  // Zero boundary conditions. Set first and last element explicitly.
-  out[0] = (2+m2)*in[0] - in[1];
-  out[L-1] = (2+m2)*in[L-1] - in[L-2];
-
-  // The rest.
-  for (int i = 1; i < L-1; i++)
+  // Central difference operator with periodic boundary conditions.
+  for (int i = 0; i < L; i++)
   {
-    out[i] = (2+m2)*in[i] - in[i-1] - in[i+1];
+    out[i] = mass*in[i] + in[(i+1)%L] - in[(i-1+L)%L];
   }
 
   // Done.

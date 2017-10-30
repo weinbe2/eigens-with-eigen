@@ -43,7 +43,7 @@ int main(int argc, char** argv)
   const double m_sq = 0.001;
 
   // Print the basic info.
-  std::cout << "1D Laplace operator, length " << length << ", mass squared " << m_sq << ", zero boundary conditions.\n";
+  std::cout << "1D Laplace operator, length " << length << ", mass squared " << m_sq << ", periodic boundary conditions.\n";
   std::cout << "Change the length and mass by modifying the source.\n";
 
   // Allocate a random phase field.
@@ -122,7 +122,10 @@ int main(int argc, char** argv)
   // eigsolve_cplx.compute(mat_cplx, EigenvaluesOnly);
 
   // Print the eigenvalues.
-  std::cout << "The eigenvalues are:\n" << eigsolve_cplx.eigenvalues() << "\n\n";
+  cMatrix evals = eigsolve_cplx.eigenvalues();
+  std::cout << "The eigenvalues are:\n" << evals << "\n\n";
+  // You can also index individual eigenvalues as "evals(i)", where
+  // "i" zero-indexes the eigenvalues.
 
   // Print the eigenvectors if the matrix is small enough.
   // As a remark, this also shows you how to access the eigenvectors. 

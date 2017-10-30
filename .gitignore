@@ -30,3 +30,6 @@
 *.exe
 *.out
 *.app
+
+# Don't sync the "Eigen" directory. That's not ours!
+Eigen
