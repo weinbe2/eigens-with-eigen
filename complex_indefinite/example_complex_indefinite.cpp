@@ -54,7 +54,7 @@ int main(int argc, char** argv)
   for (int i = 0; i < length; i++)
   {
     // As a sanity check, you can set these all equal to 1.0.
-    field[i] = 1.0;//exp(complex<double>(0.0, dist(generator)));
+    field[i] = exp(complex<double>(0.0, dist(generator)));
   }
   
   // Allocate.
