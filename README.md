@@ -3,7 +3,9 @@ A set of reference code showing how to calculate eigenvalues and eigenvectors wi
 
 This code, unsurprisingly, depends on the Eigen library. If you already have it downloaded, great! If you don't, run the script:
 
+```
 ./download_eigen.sh [directory to put it in]
+```
 
 And it will use wget to download it for you. If you do not pass a command line argument, it will simply download Eigen to the current directory. The hard-coded URL in that shell script may become out of date if/when the developers release a new version. Right now it downloads Eigen 3.3.4. If they do release a new version, let me know (see my e-mail below) and I'll update this repo.
 
